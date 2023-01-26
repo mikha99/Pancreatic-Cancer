@@ -1,0 +1,20 @@
+### running PCA
+library(ggplot2)
+library(cluster)
+
+table <- read.table("/Users/animikha/Desktop/PINE2/PREPROCESS.txt", sep='\t', header=TRUE, check.names=FALSE, stringsAsFactors=TRUE, row.names=1)
+expressions <- as.matrix(table[2:nrow(table), 1:ncol(table)])
+class(expressions) <- "numeric"
+expressions[1:5,1:5]
+expressionst <- t(expressions)
+pca <- prcomp(expressionst,scale. = TRUE , center = TRUE)
+plot(pca$x, pca$y)
+
+summary(pca)
+library(ggfortify)
+install.packages("ggfortify")
+library(ggfortify)
+autoplot(pca, label = TRUE, label.size = 3 , loadings = TRUE, loadings.label = TRUE, loadings.colour = "blue" )
+fdata <- as.data.frame(t(table[1,]))
+fdata
+autoplot(pca, data = fdata, colour = 'Group')
