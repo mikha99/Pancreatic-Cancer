@@ -1,0 +1,47 @@
+if (!require("BiocManager", quietly = TRUE))
+  install.packages("BiocManager")
+BiocManager::install("DESeq2")
+library(DESeq2)
+if (!require("BiocManager", quietly = TRUE))
+  install.packages("BiocManager")
+
+BiocManager::install("EnhancedVolcano")
+library(EnhancedVolcano)
+# load  data
+mydata<-read.table("/Users/animikha/Desktop/PINE2/PREPROCESS2.txt",header = TRUE,row.names = 1, sep='\t')
+mydata
+#Define data and remove id column
+rowmax <- apply(mydata,1,max,na.rm=TRUE)
+data <- (mydata[rowmax>25,]) 
+colnames(mydata) -> names 
+names
+meta_classes<- c('Tumor', 'Normal') 
+meta_classes=rep(meta_classes,times=c(182,327))
+meta_classes
+meta_data <- data.frame(names, meta_classes)
+ncol(meta_data)
+#Perform first step of DESeq (Define DESeq dataset)
+ds <- DESeqDataSetFromMatrix(countData=round(data,0), colData=meta_data, design=~meta_classes)
+#Perform DEseq and create results object
+Ds <- DESeq(ds) 
+res <- na.omit(results(Ds))
+print(res)
+#Create MA plot
+plotMA(res) 
+if (!require("BiocManager", quietly = TRUE))
+  install.packages("BiocManager")
+
+BiocManager::install("apeglm")
+library(apeglm)
+res_lfc <- lfcShrink(Ds, coef=2)
+#Create MA plot for lfc result
+plotMA(res_lfc) 
+#Output results in.txt format
+write.table(res,"DESeq2_TCGAGTEX_2.txt", row.names=TRUE,col.names=NA, sep="\t", quote=TRUE, append=TRUE) 
+print(summary(res$log2FoldChange))
+#Create enhance volcano plot with identified differentially expressed genes
+EnhancedVolcano(res, x = 'log2FoldChange', y = 'pvalue', lab = rownames(res),pCutoff=0.05, FCcutoff=2, xlim = c(-5, 8)) 
+print(summary(res_lfc$log2FoldChange))
+#Create enhance volcano plot with identified differentially expressed genes
+EnhancedVolcano(res_lfc, x = 'log2FoldChange', y = 'pvalue', lab = rownames(res),pCutoff=0.05, FCcutoff=2, xlim = c(-5, 8)) 
+
